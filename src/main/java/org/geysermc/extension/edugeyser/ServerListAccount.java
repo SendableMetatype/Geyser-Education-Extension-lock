@@ -1,0 +1,83 @@
+package org.geysermc.extension.edugeyser;
+
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import org.checkerframework.checker.nullness.qual.Nullable;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
+/**
+ * Holds the session state for a single MESS server list registration.
+ * Each account corresponds to one Global Admin M365 tenant.
+ * Global config (server-name, server-ip, max-players) is NOT stored here —
+ * it lives in serverlist_config.yml and is read by MessServerListManager.
+ */
+public class ServerListAccount {
+    // Auth state
+    volatile @Nullable String serverId;
+    volatile @Nullable String refreshToken;
+    volatile @Nullable String accessToken;
+    volatile long accessTokenExpires;
+    volatile @Nullable String eduRefreshToken;
+    volatile @Nullable String eduAccessToken;
+    volatile long eduAccessTokenExpires;
+    volatile @Nullable String serverToken;
+    volatile @Nullable String serverTokenJwt;
+    volatile long serverTokenExpires;
+
+    // Runtime
+    volatile @Nullable String tenantId;
+    volatile @Nullable String upn;
+    volatile boolean active = false;
+
+    /**
+     * Extract the tenant ID from the server token (first pipe segment).
+     */
+    void extractTenantId() {
+        if (serverToken != null && serverToken.contains("|")) {
+            tenantId = serverToken.split("\\|")[0];
+        }
+    }
+
+    /**
+     * Extract UPN and tenant ID from access token JWT payloads.
+     * Tries both tooling and edu tokens since either may contain the UPN.
+     */
+    void extractTokenClaims() {
+        extractClaimsFromToken(accessToken);
+        extractClaimsFromToken(eduAccessToken);
+    }
+
+    private void extractClaimsFromToken(@Nullable String token) {
+        if (token == null) return;
+        try {
+            String[] parts = token.split("\\.");
+            if (parts.length < 2) return;
+            String padded = parts[1];
+            while (padded.length() % 4 != 0) padded += "=";
+            String json = new String(Base64.getUrlDecoder().decode(padded), StandardCharsets.UTF_8);
+            JsonObject claims = JsonParser.parseString(json).getAsJsonObject();
+            if (upn == null) {
+                if (claims.has("upn")) {
+                    upn = claims.get("upn").getAsString();
+                } else if (claims.has("preferred_username")) {
+                    upn = claims.get("preferred_username").getAsString();
+                }
+            }
+            if (tenantId == null && claims.has("tid")) {
+                tenantId = claims.get("tid").getAsString();
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    /**
+     * Display label: UPN if available, otherwise tenant ID, otherwise "unknown".
+     */
+    String displayLabel() {
+        if (upn != null) return upn;
+        if (tenantId != null) return tenantId;
+        return "unknown";
+    }
+}
