@@ -448,12 +448,9 @@ public class MessServerListManager {
             JsonObject body = new JsonObject();
             body.addProperty("DedicatedServerEnabled", true);
             body.addProperty("TeachersAllowed", true);
-            // Tenant-locked variant: CrossTenantAllowed is intentionally NOT set, so
-            // only users from the same Entra tenant as the hosting account can see
-            // the server in the in-game server list. Users from other tenants can
-            // still connect via the 10-digit Connection ID.
+            // -lock variant: CrossTenantAllowed intentionally not set.
             postJsonWithAuth(MESS_BASE + "/tooling/edit_tenant_settings", account.accessToken, body.toString());
-            extension.logger().debug(LOG_PREFIX + "Tenant settings configured: dedicated servers enabled, teacher access (tenant-locked, no cross-tenant visibility).");
+            extension.logger().debug(LOG_PREFIX + "Tenant settings configured: dedicated servers enabled, teacher access.");
         } catch (IOException e) {
             extension.logger().warning(LOG_PREFIX + "Could not update tenant settings (may require Global Admin): " + e.getMessage());
             extension.logger().warning(LOG_PREFIX + "  https://education.minecraft.net/teachertools/en_US/dedicatedservers/");
@@ -471,9 +468,7 @@ public class MessServerListManager {
             body.addProperty("Enabled", true);
             body.addProperty("IsBroadcasted", true);
             body.addProperty("SharingEnabled", true);
-            // Tenant-locked variant: CrossTenantAllowed is intentionally NOT set, so
-            // the server is only visible to users in the same tenant as the account
-            // that registered it. Cross-tenant joining via Connection ID still works.
+            // -lock variant: CrossTenantAllowed intentionally not set.
             postJsonWithAuth(MESS_BASE + "/tooling/edit_server_info", account.accessToken, body.toString(),
                     Map.of("api-version", "2.0"));
             extension.logger().debug(LOG_PREFIX + "Server info configured for " + account.serverId);

@@ -1,16 +1,10 @@
-# Geyser Education Extension (Tenant-Locked)
+# Geyser Education Extension
 
-**This is the tenant-locked variant of [Geyser-Education-Extension](https://github.com/SendableMetatype/Geyser-Education-Extension).** It is functionally identical except for one difference: when registering the server in a tenant's built-in server list, it does **not** enable cross-tenant visibility. The server appears in the server list only for users in the same Entra tenant as the hosting account.
-
-Users from other tenants can still connect via the 10-digit Connection ID or via join codes created by accounts in their own tenant.
-
-Use this variant if you run a tenant-private server and do not want the server to be discoverable by students outside your organization via the global server list.
-
----
+> **This is the `-lock` variant of [Geyser-Education-Extension](https://github.com/SendableMetatype/Geyser-Education-Extension).** It is identical to the normal extension except that it does not automatically enable cross-tenant visibility on the server list. **Use the normal extension unless you have a specific reason to use this one.**
 
 Optional [Geyser](https://geysermc.org/) extension that adds three ways for Minecraft Education Edition students to discover and join your server:
 
-1. **Server List** - Broadcasts your server to Education Edition's built-in server browser. Students see the server automatically and click Play. **In this variant, the server is only visible to users in the tenant that registered it.**
+1. **Server List** - Broadcasts your server to Education Edition's built-in server browser. Students see the server automatically and click Play.
 2. **Join Codes** - Creates join codes that students can enter in the Education Edition "Join Code" screen, or click a share link.
 3. **Connection ID** - A single 10-digit ID that students can enter directly in Education Edition's connection dialog to join cross-tenant, bypassing join codes entirely.
 
@@ -85,8 +79,6 @@ max-players: 40
 
 Broadcasts your server to Education Edition's built-in server browser. Requires Global Admin access to each M365 Education tenant.
 
-**In this tenant-locked variant, the server will only appear in the server list for users in the same tenant as the registering account.** To expose the server across tenants, use the standard [Geyser-Education-Extension](https://github.com/SendableMetatype/Geyser-Education-Extension) instead, or share the Connection ID with users outside your tenant.
-
 ### Quick Start
 
 1. Edit `plugins/Geyser-*/extensions/edu/serverlist_config.yml`:
@@ -101,11 +93,11 @@ max-players: 40
 2. Restart the server
 3. Run `/edu serverlist add` from the console
 4. Two device code prompts appear - sign in with a Global Admin M365 Education account
-5. The server now appears in Education Edition's server list for that tenant (same tenant only)
+5. The server now appears in Education Edition's server list for that tenant
 
 ### Multiple Tenants
 
-Run `/edu serverlist add` once per tenant. Each requires its own Global Admin account. Each registration is independent - the server will appear in the server list for each registered tenant.
+Run `/edu serverlist add` once per tenant. Each requires its own Global Admin account.
 
 ### Commands
 
