@@ -11,6 +11,7 @@ java {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven("https://repo.opencollab.dev/main")
     maven("https://repo.opencollab.dev/maven-snapshots")
@@ -19,8 +20,8 @@ repositories {
 }
 
 dependencies {
-    compileOnly("org.geysermc.geyser:api:2.6.1-SNAPSHOT")
-    compileOnly("org.geysermc.geyser:core:2.6.1-SNAPSHOT")
+    compileOnly("org.geysermc.geyser:api:2.9.5-SNAPSHOT")
+    compileOnly("org.geysermc.geyser:core:2.9.5-SNAPSHOT")
     compileOnly("org.spongepowered:configurate-yaml:4.1.2")
 
     // Nethernet / WebRTC for join code system.
