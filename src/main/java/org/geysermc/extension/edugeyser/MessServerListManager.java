@@ -149,6 +149,7 @@ public class MessServerListManager {
             if (shutdownRequested) return;
             scheduleServerUpdates(account);
             scheduleTokenRefresh(account);
+            scheduleCrossTenantEnforcement(account);
         } catch (Exception e) {
             extension.logger().error(LOG_PREFIX + "Auth flow failed for account #" + (index + 1) + ": " + e.getMessage());
         }
@@ -448,9 +449,9 @@ public class MessServerListManager {
             JsonObject body = new JsonObject();
             body.addProperty("DedicatedServerEnabled", true);
             body.addProperty("TeachersAllowed", true);
-            // -lock variant: CrossTenantAllowed intentionally not set.
+            body.addProperty("CrossTenantAllowed", false);
             postJsonWithAuth(MESS_BASE + "/tooling/edit_tenant_settings", account.accessToken, body.toString());
-            extension.logger().debug(LOG_PREFIX + "Tenant settings configured: dedicated servers enabled, teacher access.");
+            extension.logger().debug(LOG_PREFIX + "Tenant settings configured: dedicated servers enabled, teacher access, cross-tenant disabled.");
         } catch (IOException e) {
             extension.logger().warning(LOG_PREFIX + "Could not update tenant settings (may require Global Admin): " + e.getMessage());
             extension.logger().warning(LOG_PREFIX + "  https://education.minecraft.net/teachertools/en_US/dedicatedservers/");
@@ -468,7 +469,7 @@ public class MessServerListManager {
             body.addProperty("Enabled", true);
             body.addProperty("IsBroadcasted", true);
             body.addProperty("SharingEnabled", true);
-            // -lock variant: CrossTenantAllowed intentionally not set.
+            body.addProperty("CrossTenantAllowed", false);
             postJsonWithAuth(MESS_BASE + "/tooling/edit_server_info", account.accessToken, body.toString(),
                     Map.of("api-version", "2.0"));
             extension.logger().debug(LOG_PREFIX + "Server info configured for " + account.serverId);
@@ -530,6 +531,18 @@ public class MessServerListManager {
 
     private void scheduleServerUpdates(ServerListAccount account) {
         ScheduledFuture<?> task = scheduler.scheduleAtFixedRate(() -> sendServerUpdate(account), 10, 10, TimeUnit.SECONDS);
+        accountTasks.computeIfAbsent(account, k -> new CopyOnWriteArrayList<>()).add(task);
+    }
+
+    private void scheduleCrossTenantEnforcement(ServerListAccount account) {
+        String accountLabel = account.displayLabel();
+        ScheduledFuture<?> task = scheduler.scheduleAtFixedRate(() -> {
+            try {
+                tryEditTenantSettings(account);
+            } catch (Exception e) {
+                extension.logger().debug(LOG_PREFIX + "Cross-tenant enforcement failed for " + accountLabel + ": " + e.getMessage());
+            }
+        }, 60, 60, TimeUnit.SECONDS);
         accountTasks.computeIfAbsent(account, k -> new CopyOnWriteArrayList<>()).add(task);
     }
 
